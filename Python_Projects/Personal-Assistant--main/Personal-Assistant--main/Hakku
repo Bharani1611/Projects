@@ -1,0 +1,122 @@
+import pyttsx3
+import speech_recognition as sr
+import webbrowser
+import datetime
+import wikipedia
+import os
+import requests  # for weather information
+
+# Initialize the text-to-speech engine
+engine = pyttsx3.init()
+
+# Function to make the assistant speak
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+# Function to listen and recognize voice commands
+def take_command():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio = r.listen(source)
+        try:
+            command = r.recognize_google(audio, language='en-us')
+            print(f"User said: {command}\n")
+        except sr.UnknownValueError:
+            print("Could not understand audio")
+            return "None"
+        except sr.RequestError:
+            print("Could not request results; check your network")
+            return "None"
+        return command.lower()
+
+# Function to greet the user
+def greet_user():
+    hour = datetime.datetime.now().hour
+    if 0 <= hour < 12:
+        speak("Good morning!")
+    elif 12 <= hour < 18:
+        speak("Good afternoon!")
+    else:
+        speak("Good evening!")
+
+    speak("I'm your Assistant. How may I help you today?")
+
+# Function to provide information about the weather
+def get_weather():
+    # Replace 'YOUR_API_KEY' with your actual OpenAI API key
+    openai_api_key = "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"
+    city = 'YourCity'
+    base_url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={openai_api_key}&units=metric'
+    response = requests.get(base_url)
+    weather_data = response.json()
+
+    temperature = weather_data['main']['temp']
+    description = weather_data['weather'][0]['description']
+
+    speak(f"The weather in {city} is {description} with a temperature of {temperature} degrees Celsius.")
+
+# Function to provide today's weather information
+def get_today_weather():
+    # Replace 'YOUR_API_KEY' with your actual OpenAI API key
+    openai_api_key = "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"
+    city = 'YourCity'
+    base_url = f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={openai_api_key}&units=metric'
+    response = requests.get(base_url)
+    weather_data = response.json()
+
+    temperature = weather_data['main']['temp']
+    description = weather_data['weather'][0]['description']
+    humidity = weather_data['main']['humidity']
+
+    speak(f"Today's weather in {city} is {description} with a temperature of {temperature} degrees Celsius.")
+    speak(f"The humidity level is {humidity}%.")
+
+# Main function to handle the assistant's tasks
+def main():
+    greet_user()
+    while True:
+        command = take_command()
+
+        if 'time' in command:
+            str_time = datetime.datetime.now().strftime("%H:%M:%S")
+            speak(f"The time is {str_time}")
+
+        elif 'open youtube' in command:
+            webbrowser.open("https://www.youtube.com")
+            speak("Opening YouTube")
+
+        elif 'open google' in command:
+            webbrowser.open("https://www.google.com")
+            speak("Opening Google")
+
+        elif 'search wikipedia' in command:
+            speak('Searching Wikipedia...')
+            query = command.replace("search wikipedia", "")
+            results = wikipedia.summary(query, sentences=2)
+            speak("According to Wikipedia")
+            speak(results)
+
+        elif 'weather' in command:
+            get_weather()
+
+        elif 'today weather' in command:
+            get_today_weather()
+
+        elif 'open notepad' in command:
+            os.system("notepad.exe")
+            speak("Opening Notepad")
+
+        elif 'open calculator' in command:
+            os.system("calc.exe")
+            speak("Opening Calculator")
+
+        elif 'exit' in command:
+            speak("Goodbye!")
+            break
+
+        # Add more commands as needed
+
+if __name__ == "__main__":
+    main()
